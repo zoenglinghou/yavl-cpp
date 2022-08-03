@@ -1,33 +1,47 @@
-cmake_minimum_required( VERSION 3.18.2 )
+cmake_minimum_required(VERSION 3.0.2)
+project(yavl-cpp)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+add_compile_options(-std=c++14)
+set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 
-project(yavl_cpp LANGUAGES CXX)
+set(CATKIN_PACKAGE_DEPENDENCIES)
+set(LIBRARY_NAME yavl_cpp)
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/v0.16.1/conan.cmake"
-            "${CMAKE_BINARY_DIR}/conan.cmake"
-            EXPECTED_HASH SHA256=396e16d0f5eabdc6a14afddbcfff62a54a7ee75c6da23f32f7a31bc85db23484
-            TLS_VERIFY ON)
-endif()
+find_package(catkin REQUIRED COMPONENTS ${CATKIN_PACKAGE_DEPENDENCIES})
 
-include(${CMAKE_BINARY_DIR}/conan.cmake)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAMLCPP yaml-cpp REQUIRED)
 
-conan_cmake_run(REQUIRES yaml-cpp/0.7.0
-                GENERATORS cmake_find_package
-                BASIC_SETUP CMAKE_TARGETS UPDATE
-                PROFILE default
-                BUILD missing)
+catkin_package(
+        INCLUDE_DIRS include
+        LIBRARIES ${LIBRARY_NAME}
+        CATKIN_DEPENDS ${CATKIN_PACKAGE_DEPENDENCIES}
+        DEPENDS YAMLCPP
+)
 
-add_library(yavl_cpp STATIC src/yavl.cpp src/yavl.h)
-target_link_libraries(yavl_cpp PUBLIC CONAN_PKG::yaml-cpp)
+include_directories(
+        include
+        ${catkin_INCLUDE_DIRS}
+        ${YAMLCPP_INCLUDE_DIRS}
+)
+
+add_library(${LIBRARY_NAME} STATIC src/yavl.cpp)
+target_link_libraries(${LIBRARY_NAME} ${catkin_LIBRARIES} ${YAMLCPP_LIBRARIES})
+add_dependencies(${LIBRARY_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 add_executable(checker example-code/checker.cpp)
-target_include_directories(checker PRIVATE src/)
-target_link_libraries(checker PUBLIC yavl_cpp)
+target_link_libraries(checker ${LIBRARY_NAME} ${catkin_LIBRARIES})
 
-install(TARGETS checker DESTINATION "dist/bin")
-install(TARGETS yavl_cpp DESTINATION "dist/lib")
+install(TARGETS ${LIBRARY_NAME}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        )
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h"
+        )

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>yavl-cpp</name>
+  <version>0.2.0</version>
+  <description>YAML Validation Data Binding Library in C++ </description>
+  <maintainer email="example@example.com">Ranganathan Sankaralingam</maintainer>
+  <maintainer email="enriquejr@gmail.com">Enrique Samson Jr.</maintainer>
+  <maintainer email="linghao.zhang@kemaro.ch">Linghao</maintainer>
+  <license>Copyright c by KEMARO AG, all rights reserved!</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>yaml-cpp</build_depend>
+</package>
