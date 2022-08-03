@@ -95,11 +95,9 @@ bool Validator::validate_map(const YAML::Node &mapNode, const YAML::Node &doc) {
     string key = i->first.as<string>();
     const YAML::Node &valueNode = i->second;
     YAML::Node docMapNode;
-    if (!(docMapNode = doc[key])) {
-      string reason = "key: " + key + " not found.";
-      gen_error(Exception(reason, gr_path, doc_path));
-      ok = false;
-    } else {
+    try {
+      docMapNode = doc[key];
+
       doc_path.push_back(key);
       gr_path.push_back(key);
 
@@ -107,6 +105,10 @@ bool Validator::validate_map(const YAML::Node &mapNode, const YAML::Node &doc) {
 
       gr_path.pop_back();
       doc_path.pop_back();
+    } catch (YAML::InvalidNode& e) {
+      string reason = "key: " + key + " not found.";
+      gen_error(Exception(reason, gr_path, doc_path));
+      ok = false;
     }
   }
   return ok;
